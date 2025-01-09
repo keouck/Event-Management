@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agneepath Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{url_for('static', filename='styles/selection.css')}}">
+</head>
+<body class="bg-white dark:bg-gray-900"> 
+
+    <img src="{{ url_for('static', filename='assets/logo.webp') }}" alt="Logo" class="logo">
+
+    <!-- Buttons -->
+    <div class="flex space-x-6">
+        <a  href="{{url_for('campus')}}"><button class="button">Campus Entry/Exit</button></a>
+        <a  href="{{url_for('campus')}}"><button class="button">Meals</button></a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+</body>
+</html>

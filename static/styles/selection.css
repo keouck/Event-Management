@@ -1,0 +1,30 @@
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f9fafb;
+}
+
+.logo {
+    width: 150px;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.button {
+    padding: 20px 40px;
+    font-size: 1.25rem;
+    font-weight: 500;
+    border-radius: 8px;
+    background-color: #e2e8f0; 
+    color: #374151; 
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.button:hover {
+    background-color: #cbd5e1; 
+    transform: scale(1.05); 
+}
