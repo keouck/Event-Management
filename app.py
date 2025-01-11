@@ -1,6 +1,6 @@
 import os
 import pathlib
-
+from datamanager import get_user_info
 import requests
 from flask import Flask, session, abort, redirect, request, render_template, jsonify
 from google.oauth2 import id_token
@@ -72,7 +72,7 @@ def callback():
 
     session["google_id"] = id_info.get("sub")
     session["name"] = id_info.get("name")
-    
+    print(session["google_id"])
     if session["google_id"] in app.authorised_users:
         return redirect("/select")
     else:
@@ -116,15 +116,7 @@ def get_user_details():
     qr_code = data.get('qrCode')
     if not qr_code:
         return jsonify({"error": "QR code is missing!"}), 400
-
-    # Replace this with actual data fetching logic
-    dummy_data = {
-        "name": "John Doe",
-        "sport": "Basketball",
-        "image": "https://via.placeholder.com/150"
-    }
-
-    return jsonify(dummy_data)
+    return jsonify(get_user_info(qr_code))
 
 # Endpoint to process check-in and check-out
 @app.route('/process-action-campus', methods=['POST'])
