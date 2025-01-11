@@ -1,3 +1,4 @@
 /client_secret.json
 /.env
 event/
+/qr_gen.py

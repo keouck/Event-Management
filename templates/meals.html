@@ -9,15 +9,25 @@
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
     <script src="https://unpkg.com/html5-qrcode@2.0.9/dist/html5-qrcode.min.js"></script>
 </head>
-<a href="/"><img src="{{url_for('static', filename='assets/logo.webp')}}" alt="Agneepath Logo"></a>
 <body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center h-screen">
 
     <!-- QR Code Scanner -->
-    <div id="qr-reader" style="width: 500px;"></div>
-
+    <div class="bg-gray-100 dark:bg-gray-900 h-screen flex flex-col items-center justify-center">
+        <a href="/">
+            <img src="{{url_for('static', filename='assets/logo.webp')}}" alt="Agneepath Logo" class="mb-4 w-36">
+        </a>
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-gray-700 dark:text-white">Welcome to the Agneepath Meal System</h1>
+            <p class="text-gray-500 dark:text-gray-300 mb-6">Please scan your QR code to continue.</p>
+        </div>
+        <div class="flex items-center justify-center w-full max-w-lg">
+            <div id="qr-reader" class="relative bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 w-full"></div>
+        </div>
+    </div>
+    
     <!-- Modal -->
     <div id="qr-modal" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden w-full h-full bg-gray-900 bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+        <div id="modal-content" class="bg-white rounded-lg shadow-lg max-w-md w-full">
             <div class="p-4 border-b flex justify-between items-center">
                 <h3 class="text-lg font-semibold">Scanned Code Details</h3>
                 <button id="close-modal" class="text-gray-500 hover:text-gray-700">×</button>
@@ -26,6 +36,7 @@
                 <img src="https://via.placeholder.com/150" alt="Placeholder" class="w-24 h-24 mx-auto rounded-full" id="modal-image">
                 <p id="modal-name" class="text-center text-lg font-semibold">Name: Loading...</p>
                 <p id="modal-sport" class="text-center text-gray-600">Sport: Loading...</p>
+                <p id="modal-response" class="text-center text-gray-600 hidden">Response: Loading...</p>
             </div>
             <div class="p-4 border-t flex justify-between">
                 <button id="collected" class="bg-green-500 text-white px-4 py-2 rounded">Plate Collected</button>
@@ -50,6 +61,10 @@
 
         function onScanSuccess(decodedText, decodedResult) {
             console.log(`Code scanned: ${decodedText}`);
+
+            // Clear previous response
+            document.getElementById("modal-response").textContent = "Response: Loading...";
+            document.getElementById("modal-response").classList.add("hidden");
 
             // Fetch user details from the server
             fetchUserDetails(decodedText).then((data) => {
@@ -83,30 +98,26 @@
                 body: JSON.stringify(data)
             })
             .then(response => response.json())
-            .then(data => console.log("collected Response:", data))
-            .catch(err => console.error("Error:", err));
-
-            document.getElementById("qr-modal").classList.add("hidden"); // Close modal
-        });
-
-        document.getElementById("check-out").addEventListener("click", () => {
-            const data = { action: "check-out", ...window.scannedData };
-
-            fetch("/process-action-meals", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
+            .then(data => {
+                // Update modal with the response
+                document.getElementById("modal-response").textContent = `Response: ${data.message}`;
+                document.getElementById("modal-response").classList.remove("hidden");
             })
-            .then(response => response.json())
-            .then(data => console.log("Check-out Response:", data))
             .catch(err => console.error("Error:", err));
-
-            document.getElementById("qr-modal").classList.add("hidden"); // Close modal
         });
 
         // Close Modal Functionality
+        const qrModal = document.getElementById("qr-modal");
+        const modalContent = document.getElementById("modal-content");
         document.getElementById("close-modal").addEventListener("click", () => {
-            document.getElementById("qr-modal").classList.add("hidden");
+            qrModal.classList.add("hidden");
+        });
+
+        // Close Modal on Outside Click
+        qrModal.addEventListener("click", (e) => {
+            if (!modalContent.contains(e.target)) {
+                qrModal.classList.add("hidden");
+            }
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>

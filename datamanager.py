@@ -13,27 +13,6 @@ client.set_project(os.getenv('APPWRITE_PROJECT_ID'))
 client.set_key(os.getenv('APPWRITE_API_KEY'))
 databases = Databases(client)
 
-# user_data = {
-#     'name': 'Amay',
-#      'email': 'amay.agarwal_ug2024@ashoka.edu.in',
-#      'phone_number': '9999999999',
-#      'university_name': "Ashoka University",
-#      'sport': "Football",
-#      'status': False,
-#      'breakfast': 0,
-#      'lunch': 0,
-#      'user_image': 'https://via.placeholder.com/150',
-#      'qr_val': r'9a5dcfe0f68382aa8688f4d7722c22b0505229a8d4571f030ed911f562d2374860170b29dd0548744cebce615680bae7d12437d9b1f0df01238fc0b163b4f78a8256e2aad8dc3d5d68e4ce0371ac8fe5a680245ec903a8b39e65d7934cb3f531873d0c8c'
-#      }
-
-# def add_user(user_data):
-#     try:
-#         doc = databases.create_document(database_id='677eca45003cf2bf8797', collection_id='678017ef002edc0bfa1e', document_id=ID.unique(), data = user_data)
-#     except Exception as e:
-#         print("An error occurred:", e)
-
-# add_user(user_data)
-
 def get_user_info(qr_val):
     result = databases.list_documents(
         database_id = os.getenv('APPWRITE_DB_ID'),
@@ -43,7 +22,88 @@ def get_user_info(qr_val):
             Query.equal("qr_val", [qr_val])
         ]
     )
+
     return result['documents'][0]
 
-# queried_data = get_user_info(r'9a5dcfe0f68382aa8688f4d7722c22b0505229a8d4571f030ed911f562d2374860170b29dd0548744cebce615680bae7d12437d9b1f0df01238fc0b163b4f78a8256e2aad8dc3d5d68e4ce0371ac8fe5a680245ec903a8b39e65d7934cb3f531873d0c8c')
-# print(queried_data)
+
+def on_campus():
+    result = databases.list_documents(
+        database_id = os.getenv('APPWRITE_DB_ID'),
+        collection_id = os.getenv('APPWRITE_COLLECTION_ID'),
+        queries = [
+            Query.select(["name", "phone_number"]),
+            Query.equal('status', True)
+        ]
+    )
+
+    return result['documents']
+
+def check_user_in(qr_val):
+    response = databases.list_documents(
+            database_id = os.getenv('APPWRITE_DB_ID'),
+            collection_id = os.getenv('APPWRITE_COLLECTION_ID'),
+            queries=[Query.equal('qr_val', qr_val)]
+        )
+    document_id = response['documents'][0]['$id']
+    update_response = databases.update_document(
+        database_id = os.getenv('APPWRITE_DB_ID'),
+        collection_id = os.getenv('APPWRITE_COLLECTION_ID'),
+        document_id=document_id,                
+        data={'status': True}
+    )
+    return "Successfully checked in!"
+
+def check_user_out(qr_val):
+    response = databases.list_documents(
+            database_id = os.getenv('APPWRITE_DB_ID'),
+            collection_id = os.getenv('APPWRITE_COLLECTION_ID'),
+            queries=[Query.equal('qr_val', qr_val)]
+        )
+    document_id = response['documents'][0]['$id']
+    update_response = databases.update_document(
+        database_id = os.getenv('APPWRITE_DB_ID'),
+        collection_id = os.getenv('APPWRITE_COLLECTION_ID'),
+        document_id=document_id,                
+        data={'status': False}
+    )
+    return "Successfully checked out!"
+
+def breakfast_collected(qr_val):
+    response = databases.list_documents(
+        database_id = os.getenv('APPWRITE_DB_ID'),
+        collection_id = os.getenv('APPWRITE_COLLECTION_ID'),
+        queries=[Query.equal('qr_val', qr_val)]
+    )
+    document_id = response['documents'][0]['$id']
+    breakfast_status = response['documents'][0]['breakfast'] + 1
+    
+    if breakfast_status >= 4:
+        return "Player has already finished quota"
+
+    update_response = databases.update_document(
+        database_id = os.getenv('APPWRITE_DB_ID'),
+        collection_id = os.getenv('APPWRITE_COLLECTION_ID'),
+        document_id=document_id,                
+        data={'breakfast': breakfast_status}
+    )
+    return "Breakfast Status Updated"
+
+def lunch_collected(qr_val):
+    response = databases.list_documents(
+        database_id = os.getenv('APPWRITE_DB_ID'),
+        collection_id = os.getenv('APPWRITE_COLLECTION_ID'),
+        queries=[Query.equal('qr_val', qr_val)]
+    )
+    document_id = response['documents'][0]['$id']
+    lunch_status = response['documents'][0]['lunch'] + 1
+
+    if lunch_status >= 4:
+        return "Player has already finished quota"
+
+    update_response = databases.update_document(
+        database_id = os.getenv('APPWRITE_DB_ID'),
+        collection_id = os.getenv('APPWRITE_COLLECTION_ID'),
+        document_id=document_id,                
+        data={'lunch': lunch_status}
+    )
+    return "Lunch Status Updated"

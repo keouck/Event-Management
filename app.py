@@ -1,6 +1,7 @@
 import os
+import datetime
 import pathlib
-from datamanager import get_user_info
+from datamanager import get_user_info, check_user_in, check_user_out, breakfast_collected, lunch_collected, on_campus
 import requests
 from flask import Flask, session, abort, redirect, request, render_template, jsonify
 from google.oauth2 import id_token
@@ -8,6 +9,7 @@ from google_auth_oauthlib.flow import Flow
 from pip._vendor import cachecontrol
 import google.auth.transport.requests
 from functools import wraps
+
 
 app = Flask("Google Login App")
 app.secret_key = os.getenv("GOOGLE_CLIENT_SECRET") # make sure this matches with that's in client_secret.json
@@ -109,6 +111,13 @@ def campus():
 def meals():
     return render_template("meals.html")
 
+
+@app.route("/players")
+@login_is_required
+@authorized_user_required
+def players():
+    return render_template("players.html", players=on_campus())
+
 # Endpoint to fetch user details
 @app.route('/get-user-details', methods=['POST'])
 def get_user_details():
@@ -132,9 +141,9 @@ def process_action_campus():
 
     # Replace this with actual action handling logic
     if action == "check-in":
-        return jsonify({"message": f"Checked in {name} for {sport}!", "qrCode": qr_code})
+        return jsonify({"message": check_user_in(qr_code)})
     elif action == "check-out":
-        return jsonify({"message": f"Checked out {name} from {sport}!", "qrCode": qr_code})
+        return jsonify({"message": check_user_out(qr_code)})
     else:
         return jsonify({"error": "Invalid action!"}), 400
 
@@ -153,12 +162,15 @@ def process_action_meals():
 
     # Replace this with actual action handling logic
     if action == "collected":
-        print("collected")
-        return jsonify({"message": f"{name} for {sport} has collected their plate.", "qrCode": qr_code})
+        now = datetime.datetime.now().hour
+        if now >= 13 and now <= 24:
+            return jsonify({"message": lunch_collected(qr_code), "qrCode": qr_code})
+        elif now >= 8 and now <=11:
+            return jsonify({"message": breakfast_collected(qr_code), "qrCode": qr_code})
+        else:
+            return jsonify({"message": "Meals not started yet", "qrCode": qr_code})
     else:
         return jsonify({"error": "Invalid action!"}), 400
 
-
-
 if __name__ == "__main__":
-    app.run(debug=True, ssl_context='adhoc')
+    app.run(debug=True, ssl_context='adhoc', threaded=True)
