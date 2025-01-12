@@ -1,4 +1,4 @@
-#!/home/turingtested/Documents/management/event/bin/python
+#!/home/turingtested/Documents/Event-Management/event/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
