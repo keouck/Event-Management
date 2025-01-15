@@ -2,3 +2,5 @@
 /.env
 event/
 /qr_gen.py
+/cert.pem
+/key.pem

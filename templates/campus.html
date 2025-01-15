@@ -5,27 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link rel="icon" type="image/png" href="favicon.png" />
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/html5-qrcode@2.0.9/dist/html5-qrcode.min.js"></script>
 </head>
-<a href="/"><img src="{{url_for('static', filename='assets/logo.webp')}}" alt="Agneepath Logo"></a>
-<body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-center min-h-screen p-4">
 
-    <!-- QR Code Scanner -->
-    <div id="qr-reader" style="width: 500px;"></div>
+    <!-- Logo -->
+    <a href="/" class="mb-6">
+        <img src="{{url_for('static', filename='assets/logo.webp')}}" alt="Agneepath Logo" class="h-12">
+    </a>
+
+    <!-- Camera Button -->
+    <button id="camera-button" class="mb-6 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow flex items-center">
+        <i class="fas fa-camera mr-2"></i>
+        Open Camera
+    </button>
+
+    <!-- Hidden QR Code Scanner -->
+    <div id="qr-reader-container" class="hidden w-full max-w-md mx-auto">
+        <div id="qr-reader" class="rounded-lg shadow-md bg-white" style="width: 100%;"></div>
+    </div>
 
     <!-- Modal -->
     <div id="qr-modal" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden w-full h-full bg-gray-900 bg-opacity-50 flex items-center justify-center">
         <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
             <div class="p-4 border-b flex justify-between items-center">
                 <h3 class="text-lg font-semibold">Scanned Code Details</h3>
-                <button id="close-modal" class="text-gray-500 hover:text-gray-700">×</button>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700">&times;</button>
             </div>
-            <div class="p-4 space-y-2">
+            <div class="p-4 space-y-2 text-center">
                 <img src="https://via.placeholder.com/150" alt="Placeholder" class="w-24 h-24 mx-auto rounded-full" id="modal-image">
-                <p id="modal-name" class="text-center text-lg font-semibold">Name: Loading...</p>
-                <p id="modal-sport" class="text-center text-gray-600">Sport: Loading...</p>
+                <p id="modal-name" class="text-lg font-semibold">Name: Loading...</p>
+                <p id="modal-sport" class="text-gray-600">Sport: Loading...</p>
             </div>
             <div class="p-4 border-t flex justify-between">
                 <button id="check-in" class="bg-green-500 text-white px-4 py-2 rounded">Check In</button>
@@ -69,10 +82,44 @@
             });
         }
 
-        // Initialize the QR Code Scanner
-        var html5QrcodeScanner = new Html5QrcodeScanner(
-            "qr-reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render(onScanSuccess);
+        const cameraButton = document.getElementById("camera-button");
+        const qrReaderContainer = document.getElementById("qr-reader-container");
+
+        let html5QrCode;
+
+        cameraButton.addEventListener("click", async () => {
+            // Hide the camera button
+            cameraButton.classList.add("hidden");
+            qrReaderContainer.classList.remove("hidden");
+
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+            }
+
+            try {
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length > 0) {
+                    const cameraId = cameras[0].id; // Default to the first camera
+                    await html5QrCode.start(
+                        cameraId,
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        onScanSuccess,
+                        (errorMessage) => {
+                            console.warn(`QR Code scan error: ${errorMessage}`);
+                        }
+                    );
+                } else {
+                    alert("No cameras found.");
+                }
+            } catch (error) {
+                console.error("Error starting QR code scanner:", error);
+            }
+        });
+
+        // Close Modal Functionality
+        document.getElementById("close-modal").addEventListener("click", () => {
+            document.getElementById("qr-modal").classList.add("hidden");
+        });
 
         // Event Listeners for Modal Buttons
         document.getElementById("check-in").addEventListener("click", () => {
@@ -104,11 +151,7 @@
 
             document.getElementById("qr-modal").classList.add("hidden"); // Close modal
         });
-
-        // Close Modal Functionality
-        document.getElementById("close-modal").addEventListener("click", () => {
-            document.getElementById("qr-modal").classList.add("hidden");
-        });
+        
     </script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
 </body>
