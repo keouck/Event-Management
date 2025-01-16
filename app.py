@@ -23,14 +23,14 @@ client_secrets_file = os.path.join(pathlib.Path(__file__).parent, "client_secret
 flow = Flow.from_client_secrets_file(
     client_secrets_file=client_secrets_file,
     scopes=["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "openid"],
-    redirect_uri="https://127.0.0.1:5000/callback"
+    redirect_uri="https://security.agneepath.co.in/callback"
 )
 
 
 def login_is_required(function):
     @wraps(function)
     def wrapper(*args, **kwargs):
-        if "google_id" not in session:
+        if "email" not in session:
             return abort(401)  # Authorization required
         else:
             return function(*args, **kwargs)
@@ -39,9 +39,9 @@ def login_is_required(function):
 def authorized_user_required(function):
     @wraps(function)
     def wrapper(*args, **kwargs):
-        if "google_id" not in session:
+        if "email" not in session:
             return abort(401)  # Authorization required
-        elif session["google_id"] not in app.authorised_users:
+        elif session["email"] not in app.authorised_users:
             return "Unauthorized Access", 403
         else:
             return function(*args, **kwargs)
@@ -74,8 +74,8 @@ def callback():
 
     session["google_id"] = id_info.get("sub")
     session["name"] = id_info.get("name")
-    print(session["google_id"])
-    if session["google_id"] in app.authorised_users:
+    session["email"] = id_info.get("email")
+    if session["email"] in app.authorised_users:
         return redirect("/select")
     else:
         return "Unauthorised ID"
