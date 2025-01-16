@@ -40,7 +40,6 @@
         </div>
     </div>
 
-
     <!-- Modal -->
     <div id="qr-modal" tabindex="-1" aria-hidden="true" class="fixed inset-0 z-50 hidden w-full h-full bg-gray-900 bg-opacity-50 flex items-center justify-center">
         <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
@@ -78,88 +77,83 @@
         function onScanSuccess(decodedText, decodedResult) {
             console.log(`Code scanned: ${decodedText}`);
 
-            // Fetch user details from the server
             fetchUserDetails(decodedText).then((data) => {
                 if (data) {
-                    // Populate the modal with fetched data
                     document.getElementById("modal-name").textContent = `Name: ${data.name}`;
                     document.getElementById("modal-sport").textContent = `Sport: ${data.sport}`;
                     document.getElementById("modal-image").src = data.image || "https://via.placeholder.com/150";
-
-                    // Store fetched data and scanned code globally
                     window.scannedData = { qrCode: decodedText, ...data };
-
-                    // Show the modal
                     document.getElementById("qr-modal").classList.remove("hidden");
                 }
             });
         }
 
-    const cameraButton = document.getElementById("camera-button");
-    const qrReaderContainer = document.getElementById("qr-reader-container");
-    const qrReaderDropdown = document.createElement("select");
-    qrReaderDropdown.classList.add("mb-4", "bg-white", "text-gray-800", "rounded", "py-2", "px-4");
+        const cameraButton = document.getElementById("camera-button");
+        const qrReaderContainer = document.getElementById("qr-reader-container");
+        const qrReaderDropdown = document.createElement("select");
+        qrReaderDropdown.classList.add("mb-4", "bg-white", "text-gray-800", "rounded", "py-2", "px-4");
 
-    let html5QrCode;
+        let html5QrCode;
 
-    cameraButton.addEventListener("click", async () => {
-        // Hide the camera button
-        cameraButton.classList.add("hidden");
-        qrReaderContainer.classList.remove("hidden");
+        cameraButton.addEventListener("click", async () => {
+            cameraButton.classList.add("hidden");
+            qrReaderContainer.classList.remove("hidden");
 
-        if (!html5QrCode) {
-            html5QrCode = new Html5Qrcode("qr-reader");
-        }
-
-        try {
-            const cameras = await Html5Qrcode.getCameras();
-            if (cameras && cameras.length > 0) {
-                // Add camera selection dropdown
-                qrReaderContainer.prepend(qrReaderDropdown);
-                qrReaderDropdown.innerHTML = cameras.map((camera, index) => {
-                    const isFront = camera.label.toLowerCase().includes("front");
-                    return `<option value="${camera.id}" ${isFront ? "selected" : ""}>${camera.label || `Camera ${index + 1}`}</option>`;
-                }).join("");
-
-                // Start with the selected camera
-                const selectedCameraId = qrReaderDropdown.value;
-                startScanner(selectedCameraId);
-
-                // Change camera on selection
-                qrReaderDropdown.addEventListener("change", (event) => {
-                    const cameraId = event.target.value;
-                    html5QrCode.stop().then(() => startScanner(cameraId));
-                });
-            } else {
-                alert("No cameras found.");
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("qr-reader");
             }
-        } catch (error) {
-            console.error("Error accessing cameras:", error);
-        }
-    });
 
-    async function startScanner(cameraId) {
-        try {
-            await html5QrCode.start(
-                cameraId,
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                onScanSuccess,
-                (errorMessage) => {
-                    console.warn(`QR Code scan error: ${errorMessage}`);
+            try {
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length > 0) {
+                    qrReaderContainer.prepend(qrReaderDropdown);
+                    qrReaderDropdown.innerHTML = cameras.map((camera, index) => {
+                        const isFront = camera.label.toLowerCase().includes("front");
+                        return `<option value="${camera.id}" ${isFront ? "selected" : ""}>${camera.label || `Camera ${index + 1}`}</option>`;
+                    }).join("");
+
+                    const selectedCameraId = qrReaderDropdown.value;
+                    startScanner(selectedCameraId);
+
+                    qrReaderDropdown.addEventListener("change", (event) => {
+                        const cameraId = event.target.value;
+                        html5QrCode.stop().then(() => startScanner(cameraId));
+                    });
+                } else {
+                    alert("No cameras found. Please ensure camera access is enabled.");
                 }
-            );
-        } catch (error) {
-            console.error("Error starting scanner:", error);
+            } catch (error) {
+                console.error("Error accessing cameras:", error);
+                alert("Unable to access camera. Please check your device settings.");
+            }
+        });
+
+        async function startScanner(cameraId) {
+            try {
+                await html5QrCode.start(
+                    cameraId,
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    onScanSuccess,
+                    (errorMessage) => {
+                        console.warn(`QR Code scan error: ${errorMessage}`);
+                        alert("Unable to read the QR code. Please try again.");
+                    }
+                );
+            } catch (error) {
+                console.error("Error starting scanner:", error);
+            }
         }
-    }
 
+        window.addEventListener("beforeunload", () => {
+            if (html5QrCode) {
+                html5QrCode.stop().catch((err) => console.warn("Error stopping scanner:", err));
+            }
+        });
 
-        // Close Modal Functionality
         document.getElementById("close-modal").addEventListener("click", () => {
             document.getElementById("qr-modal").classList.add("hidden");
         });
 
-        // Event Listeners for Modal Buttons
         document.getElementById("check-in").addEventListener("click", () => {
             const data = { action: "check-in", ...window.scannedData };
 
@@ -172,7 +166,7 @@
             .then(data => console.log("Check-in Response:", data))
             .catch(err => console.error("Error:", err));
 
-            document.getElementById("qr-modal").classList.add("hidden"); // Close modal
+            document.getElementById("qr-modal").classList.add("hidden");
         });
 
         document.getElementById("check-out").addEventListener("click", () => {
@@ -187,9 +181,8 @@
             .then(data => console.log("Check-out Response:", data))
             .catch(err => console.error("Error:", err));
 
-            document.getElementById("qr-modal").classList.add("hidden"); // Close modal
+            document.getElementById("qr-modal").classList.add("hidden");
         });
-        
     </script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
 </body>
