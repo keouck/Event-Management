@@ -173,4 +173,4 @@ def process_action_meals():
         return jsonify({"error": "Invalid action!"}), 400
 
 if __name__ == "__main__":
-    app.run(debug=True, ssl_context=('cert.pem', 'key.pem'), threaded=True)
+    app.run(threaded=True)
