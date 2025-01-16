@@ -7,41 +7,53 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header with Logo -->
+    <header class="bg-white shadow-md py-4 px-6">
+        <div class="container mx-auto flex items-center justify-between">
+            <a href="/" class="flex items-center">
+                <img src="{{ url_for('static', filename='assets/logo.webp') }}" alt="Logo" class="h-10 w-auto">
+                <span class="ml-3 text-xl font-bold text-gray-800">Agneepath</span>
+            </a>
+        </div>
+    </header>
 
     <!-- Page Title -->
-    <div class="p-6 bg-gray-800 text-white text-center">
+    <div class="bg-gray-800 text-white py-6 text-center">
         <h1 class="text-3xl font-bold">Players on Campus</h1>
     </div>
 
     <!-- Table Container -->
-    <div class="container mx-auto my-10 p-6 bg-white shadow-md rounded-lg">
-        <table class="table-auto w-full border-collapse border border-gray-300 text-sm">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th class="px-4 py-3 border border-gray-300 text-left"></th>
-                    <th class="px-6 py-3 border border-gray-300 text-left">Name</th>
-                    <th class="px-6 py-3 border border-gray-300 text-left">Phone Number</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Loop through the players list -->
-                {% for player in players %}
-                <tr class="border-t border-gray-300">
-                    <!-- Serial Number -->
-                    <td class="px-4 py-4">{{ loop.index }}</td>
-                    <!-- Name -->
-                    <td class="px-6 py-4">{{ player.name }}</td>
-                    <!-- Clickable Phone Number -->
-                    <td class="px-6 py-4">
-                        <a href="tel:{{ player.phone_number }}" class="text-blue-500 underline">
-                            {{ player.phone_number }}
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="container mx-auto my-10 p-4 sm:p-6 bg-white shadow-md rounded-lg">
+        <div class="overflow-x-auto">
+            <table class="table-auto w-full border-collapse border border-gray-300 text-sm">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-700">
+                        <th class="px-4 py-3 border border-gray-300 text-left">#</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Name</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Phone Number</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Loop through the players list -->
+                    {% for player in players %}
+                    <tr class="border-t border-gray-300 hover:bg-gray-100">
+                        <!-- Serial Number -->
+                        <td class="px-4 py-4">{{ loop.index }}</td>
+                        <!-- Name -->
+                        <td class="px-6 py-4 font-medium text-gray-800">{{ player.name }}</td>
+                        <!-- Clickable Phone Number -->
+                        <td class="px-6 py-4">
+                            <a href="tel:{{ player.phone_number }}" class="text-blue-500 underline">
+                                {{ player.phone_number }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Flowbite Script -->

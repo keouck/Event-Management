@@ -9,15 +9,30 @@
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="{{url_for('static', filename='styles/selection.css')}}">
 </head>
-<body class="bg-white dark:bg-gray-900"> 
+<body class="bg-white dark:bg-gray-900 flex flex-col items-center justify-center min-h-screen p-4">
 
-    <img src="{{ url_for('static', filename='assets/logo.webp') }}" alt="Logo" class="logo">
+    <!-- Logo -->
+    <img src="{{ url_for('static', filename='assets/logo.webp') }}" 
+         alt="Logo" 
+         class="w-32 md:w-48 mb-8">
 
     <!-- Buttons -->
-    <div class="flex space-x-6">
-        <a  href="{{url_for('campus')}}"><button class="button">Campus Entry/Exit</button></a>
-        <a  href="{{url_for('meals')}}"><button class="button">Meals</button></a>
-        <a  href="{{url_for('players')}}"><button class="button">List of players on campus</button></a>
+    <div class="flex flex-col space-y-4 w-full max-w-sm">
+        <a href="{{url_for('campus')}}">
+            <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded shadow">
+                Campus Entry/Exit
+            </button>
+        </a>
+        <a href="{{url_for('meals')}}">
+            <button class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded shadow">
+                Meals
+            </button>
+        </a>
+        <a href="{{url_for('players')}}">
+            <button class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 rounded shadow">
+                List of players on campus
+            </button>
+        </a>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>

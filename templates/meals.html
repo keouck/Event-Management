@@ -61,40 +61,61 @@
     <script>
         let html5QrCode = null;
 
-        const cameraButton = document.getElementById("camera-button");
-        const qrReaderContainer = document.getElementById("qr-reader-container");
-        let scannedData = null; // To store globally fetched data
+    const cameraButton = document.getElementById("camera-button");
+    const qrReaderContainer = document.getElementById("qr-reader-container");
+    const qrReaderDropdown = document.createElement("select");
+    qrReaderDropdown.classList.add("mb-4", "bg-white", "text-gray-800", "rounded", "py-2", "px-4");
 
-        cameraButton.addEventListener("click", async () => {
-            cameraButton.classList.add("hidden");
-            qrReaderContainer.classList.remove("hidden");
+    cameraButton.addEventListener("click", async () => {
+        // Hide the camera button
+        cameraButton.classList.add("hidden");
+        qrReaderContainer.classList.remove("hidden");
 
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("qr-reader");
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("qr-reader");
+        }
+
+        try {
+            const cameras = await Html5Qrcode.getCameras();
+            if (cameras && cameras.length > 0) {
+                // Add camera selection dropdown
+                qrReaderContainer.prepend(qrReaderDropdown);
+                qrReaderDropdown.innerHTML = cameras.map((camera, index) => {
+                    const isFront = camera.label.toLowerCase().includes("front");
+                    return `<option value="${camera.id}" ${isFront ? "selected" : ""}>${camera.label || `Camera ${index + 1}`}</option>`;
+                }).join("");
+
+                // Start with the selected camera
+                const selectedCameraId = qrReaderDropdown.value;
+                startScanner(selectedCameraId);
+
+                // Change camera on selection
+                qrReaderDropdown.addEventListener("change", (event) => {
+                    const cameraId = event.target.value;
+                    html5QrCode.stop().then(() => startScanner(cameraId));
+                });
+            } else {
+                alert("No cameras found.");
             }
+        } catch (error) {
+            console.error("Error accessing cameras:", error);
+        }
+    });
 
-            try {
-                const cameras = await Html5Qrcode.getCameras();
-                if (cameras && cameras.length > 0) {
-                    const cameraId = cameras.find(camera => camera.label.toLowerCase().includes("front"))?.id || cameras[0].id;
-
-                    await html5QrCode.start(
-                        cameraId,
-                        {
-                            fps: 10,
-                            qrbox: { width: 250, height: 250 },
-                            disableFlip: false, // Handle flipped QR codes
-                        },
-                        onScanSuccess,
-                        (errorMessage) => console.warn(`QR Code scan error: ${errorMessage}`)
-                    );
-                } else {
-                    alert("No cameras found.");
+    async function startScanner(cameraId) {
+        try {
+            await html5QrCode.start(
+                cameraId,
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess,
+                (errorMessage) => {
+                    console.warn(`QR Code scan error: ${errorMessage}`);
                 }
-            } catch (error) {
-                console.error("Error starting QR code scanner:", error);
-            }
-        });
+            );
+        } catch (error) {
+            console.error("Error starting scanner:", error);
+        }
+    }
 
         async function fetchUserDetails(qrCode) {
             try {

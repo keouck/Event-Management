@@ -12,20 +12,32 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-center min-h-screen p-4">
 
-    <!-- Logo -->
-    <a href="/" class="mb-6">
-        <img src="{{url_for('static', filename='assets/logo.webp')}}" alt="Agneepath Logo" class="h-12">
-    </a>
+    <div class="flex flex-col items-center justify-center h-screen w-full p-4">
+        <!-- Logo -->
+        <a href="/" class="mb-6">
+            <img src="{{url_for('static', filename='assets/logo.webp')}}" alt="Agneepath Logo" class="w-36">
+        </a>
 
-    <!-- Camera Button -->
-    <button id="camera-button" class="mb-6 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow flex items-center">
-        <i class="fas fa-camera mr-2"></i>
-        Open Camera
-    </button>
+        <!-- Heading -->
+        <h1 class="text-xl md:text-3xl font-bold text-gray-700 dark:text-white text-center mb-4">
+            Welcome to the Agneepath Meal System
+        </h1>
+        <p class="text-sm md:text-base text-gray-500 dark:text-gray-300 text-center mb-6">
+            Please scan your QR code to continue.
+        </p>
 
-    <!-- Hidden QR Code Scanner -->
-    <div id="qr-reader-container" class="hidden w-full max-w-md mx-auto">
-        <div id="qr-reader" class="rounded-lg shadow-md bg-white" style="width: 100%;"></div>
+        <!-- QR Code Reader -->
+        <div class="flex flex-col items-center justify-center w-full max-w-lg">
+            <button id="camera-button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h11M9 21l3-12 3 12m7-9H12M17 21v-4.5a1.5 1.5 0 013 0V21z" />
+                </svg>
+                Open Scanner
+            </button>
+            <div id="qr-reader-container" class="w-full hidden mt-6">
+                <div id="qr-reader" class="relative bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 w-full"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal -->
@@ -82,39 +94,64 @@
             });
         }
 
-        const cameraButton = document.getElementById("camera-button");
-        const qrReaderContainer = document.getElementById("qr-reader-container");
+    const cameraButton = document.getElementById("camera-button");
+    const qrReaderContainer = document.getElementById("qr-reader-container");
+    const qrReaderDropdown = document.createElement("select");
+    qrReaderDropdown.classList.add("mb-4", "bg-white", "text-gray-800", "rounded", "py-2", "px-4");
 
-        let html5QrCode;
+    let html5QrCode;
 
-        cameraButton.addEventListener("click", async () => {
-            // Hide the camera button
-            cameraButton.classList.add("hidden");
-            qrReaderContainer.classList.remove("hidden");
+    cameraButton.addEventListener("click", async () => {
+        // Hide the camera button
+        cameraButton.classList.add("hidden");
+        qrReaderContainer.classList.remove("hidden");
 
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("qr-reader");
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("qr-reader");
+        }
+
+        try {
+            const cameras = await Html5Qrcode.getCameras();
+            if (cameras && cameras.length > 0) {
+                // Add camera selection dropdown
+                qrReaderContainer.prepend(qrReaderDropdown);
+                qrReaderDropdown.innerHTML = cameras.map((camera, index) => {
+                    const isFront = camera.label.toLowerCase().includes("front");
+                    return `<option value="${camera.id}" ${isFront ? "selected" : ""}>${camera.label || `Camera ${index + 1}`}</option>`;
+                }).join("");
+
+                // Start with the selected camera
+                const selectedCameraId = qrReaderDropdown.value;
+                startScanner(selectedCameraId);
+
+                // Change camera on selection
+                qrReaderDropdown.addEventListener("change", (event) => {
+                    const cameraId = event.target.value;
+                    html5QrCode.stop().then(() => startScanner(cameraId));
+                });
+            } else {
+                alert("No cameras found.");
             }
+        } catch (error) {
+            console.error("Error accessing cameras:", error);
+        }
+    });
 
-            try {
-                const cameras = await Html5Qrcode.getCameras();
-                if (cameras && cameras.length > 0) {
-                    const cameraId = cameras[1].id; // Default to the first camera
-                    await html5QrCode.start(
-                        cameraId,
-                        { fps: 10, qrbox: { width: 250, height: 250 } },
-                        onScanSuccess,
-                        (errorMessage) => {
-                            console.warn(`QR Code scan error: ${errorMessage}`);
-                        }
-                    );
-                } else {
-                    alert("No cameras found.");
+    async function startScanner(cameraId) {
+        try {
+            await html5QrCode.start(
+                cameraId,
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess,
+                (errorMessage) => {
+                    console.warn(`QR Code scan error: ${errorMessage}`);
                 }
-            } catch (error) {
-                console.error("Error starting QR code scanner:", error);
-            }
-        });
+            );
+        } catch (error) {
+            console.error("Error starting scanner:", error);
+        }
+    }
+
 
         // Close Modal Functionality
         document.getElementById("close-modal").addEventListener("click", () => {
