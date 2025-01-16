@@ -99,7 +99,7 @@
             try {
                 const cameras = await Html5Qrcode.getCameras();
                 if (cameras && cameras.length > 0) {
-                    const cameraId = cameras[0].id; // Default to the first camera
+                    const cameraId = cameras[1].id; // Default to the first camera
                     await html5QrCode.start(
                         cameraId,
                         { fps: 10, qrbox: { width: 250, height: 250 } },
